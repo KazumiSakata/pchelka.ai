@@ -1,0 +1,23 @@
+{
+  "name": "vosk-model-small-ru-0.22",
+  "license": "Apache-2.0",
+  "format": "tar.gz",
+  "parts": [
+    {
+      "file": "ru-0.bin",
+      "size": 18000000,
+      "sha256": "d1653947f5e32afbb56d40ddbbb9aab3059a5ae8479dae3c26b34391f2fe5624"
+    },
+    {
+      "file": "ru-1.bin",
+      "size": 18000000,
+      "sha256": "46f341cb8262279c757d8a1cf6d344289c2f3bbcfcd684bdd85bc6379d478a29"
+    },
+    {
+      "file": "ru-2.bin",
+      "size": 10105309,
+      "sha256": "4e38e7e9da58eb58fcb47b106a5ed1ca19c85a5f07e3722dd0c07a8413f3e4e7"
+    }
+  ],
+  "bytes": 46105309
+}

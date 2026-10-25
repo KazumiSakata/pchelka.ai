@@ -1,0 +1,179 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Пчёлка: поиск сведений о товаре",
+    "version": "2.0.0",
+    "description": "Только поиск кандидатов. Карточки создаются в браузере. Локальный Python не требует ключа; внешняя платформа может иметь отдельный контроль доступа."
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "Тот же origin, что и приложение"
+    }
+  ],
+  "security": [],
+  "paths": {
+    "/api/products": {
+      "get": {
+        "operationId": "searchProducts",
+        "summary": "Найти до 5 кандидатов по GTIN или названию",
+        "description": "Строка обрезается по краям, длина 2–120. Числовой запрос — валидный GTIN 8/12/13/14 знаков с контрольной цифрой. До 10 поисков в минуту на IP в процессе/изоляте. Совпадение подтверждает пользователь.",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 120
+            },
+            "example": "3017620422003"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "До 5 кандидатов; пустой products — совпадений нет",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Некорректный запрос или GTIN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Лимит поиска, подождать минуту",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Источник недоступен; неизвестные сведения не подставлены",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Product": {
+        "type": "object",
+        "description": "Все поля необязательны.",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "product_name": {
+            "type": "string"
+          },
+          "product_name_ru": {
+            "type": "string"
+          },
+          "product_name_en": {
+            "type": "string"
+          },
+          "brands": {
+            "type": "string"
+          },
+          "ingredients_text": {
+            "type": "string"
+          },
+          "ingredients_text_ru": {
+            "type": "string"
+          },
+          "ingredients_text_en": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "string"
+          },
+          "image_front_small_url": {
+            "type": "string"
+          },
+          "categories_tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20
+          },
+          "last_modified_t": {
+            "type": "number"
+          }
+        }
+      },
+      "SearchResult": {
+        "type": "object",
+        "required": [
+          "source",
+          "license",
+          "matched_by",
+          "query",
+          "retrieved_at",
+          "products"
+        ],
+        "properties": {
+          "source": {
+            "const": "Open Food Facts"
+          },
+          "license": {
+            "const": "ODbL"
+          },
+          "matched_by": {
+            "enum": [
+              "barcode",
+              "text"
+            ]
+          },
+          "query": {
+            "type": "string"
+          },
+          "retrieved_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "products": {
+            "type": "array",
+            "maxItems": 5,
+            "items": {
+              "$ref": "#/components/schemas/Product"
+            }
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,4 @@
+# Python 3.10+ (validated on Python 3.12).
+# No third-party Python packages are required.
+# server.py uses only the Python standard library.
+# Optional Node.js tooling is described in package.json, not installed by pip.

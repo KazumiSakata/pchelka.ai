@@ -1,0 +1,39 @@
+name: Pchelka checks
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - run: python -m unittest discover -s tests -p "test_*.py" -v
+      - run: node tests/test_engine.mjs
+      - run: node tests/test_workbench.mjs
+      - run: node tests/test_plus.mjs
+      - run: python scripts/verify-release.py
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - run: docker compose config --quiet
+      - run: docker compose up --build --wait --wait-timeout 90
+      - run: curl --fail --silent http://127.0.0.1:8000/welcome.html -o /dev/null
+      - if: always()
+        run: docker compose down

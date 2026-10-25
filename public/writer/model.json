@@ -1,0 +1,7 @@
+{
+  "model": "https://huggingface.co/mlc-ai/Qwen2.5-0.5B-Instruct-q4f32_1-MLC/resolve/8e6ec5f417c7d0e1414703ef619b8a24686e3ab0/",
+  "revision": "8e6ec5f417c7d0e1414703ef619b8a24686e3ab0",
+  "name": "Qwen2.5-0.5B-Instruct",
+  "license": "Apache-2.0",
+  "download": "about 300 MB"
+}

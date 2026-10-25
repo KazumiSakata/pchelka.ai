@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Пчёлка: пример встраивания</title></head>
+<body><h1>Учебный пример карточки</h1><p>Данные вымышлены. Это пример подключения engine.js, а не автоматическая публикация.</p>
+<label><input id="approved" type="checkbox"> Я проверил учебные данные</label>
+<button id="render" type="button">Показать карточку</button><p id="status" role="status"></p><div id="card"></div>
+<script src="./engine.js"></script><script>
+document.querySelector('#render').addEventListener('click',async()=>{
+ const status=document.querySelector('#status');
+ if(!document.querySelector('#approved').checked){status.textContent='Сначала подтвердите данные.';return;}
+ try{
+  const response=await fetch('./sample-product.jpg');if(!response.ok)throw Error('Положите sample-product.jpg рядом с примером.');
+  const blob=await response.blob();const dataUrl=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(blob);});
+  const image=new Image();image.src=dataUrl;await image.decode();
+  const model={category:'honey',values:{name:'Учебный мёд',weight:'500 г',producer:'Учебная пасека',composition:'Мёд',shelf_life:'12 месяцев',storage:'От 0 до +20 °C'},photos:[{dataUrl,width:image.naturalWidth,height:image.naturalHeight}],coverIndex:0,title:'Учебный мёд, 500 г',description:'Демонстрационная карточка. Не является предложением реального товара.',price:'650',theme:'green',buttonText:'Подробнее',buttonUrl:'https://example.org/product',factsConfirmed:true,conflicts:[]};
+  const issues=Bee.check(model);const blocks=issues.filter(x=>x.type==='block');
+  if(blocks.length){status.textContent=blocks.map(x=>x.message).join(' ');return;}
+  // HTML is produced only by Bee.card, which escapes model text.
+  document.querySelector('#card').innerHTML=Bee.card(model);
+  status.textContent='Учебный блок создан. Проверка: '+issues.filter(x=>x.type==='warn').map(x=>x.message).join(' ');
+ }catch(error){status.textContent=error.message||'Не удалось открыть пример.';}
+});
+</script></body></html>

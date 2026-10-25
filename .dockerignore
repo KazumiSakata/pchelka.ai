@@ -1,0 +1,6 @@
+# Only application files are sent to Docker; models stay included.
+**
+!Dockerfile
+!server.py
+!public/
+!public/**

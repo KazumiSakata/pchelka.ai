@@ -1,0 +1,9 @@
+/* Local MobileCLIP image inference. No image is sent to a server. */
+'use strict';
+importScripts('ort.min.js');
+ort.env.wasm.wasmPaths=new URL('.',self.location.href).href;
+ort.env.wasm.numThreads=1;
+ort.env.wasm.proxy=false;
+let session=null,labels=null,vectors=null;
+async function load(){if(session)return;const base=new URL('.',self.location.href);const manifest=await(await fetch(new URL('vision-parts.json',base))).json();const total=manifest.size;let size=0;const chunks=[];for(const name of manifest.parts){const response=await fetch(new URL(name,base));if(!response.ok)throw Error('Не загрузилась модель анализа фото. Обновите страницу.');const reader=response.body.getReader();while(true){const {done,value}=await reader.read();if(done)break;chunks.push(value);size+=value.length;postMessage({type:'progress',value:Math.min(.95,size/total),stage:'loading'})}}const buffer=new Uint8Array(size);let offset=0;for(const chunk of chunks){buffer.set(chunk,offset);offset+=chunk.length}labels=await(await fetch(new URL('labels.json',base))).json();vectors=await(await fetch(new URL('embeddings.json',base))).json();postMessage({type:'progress',value:.98,stage:'initializing'});session=await ort.InferenceSession.create(buffer,{executionProviders:['wasm'],graphOptimizationLevel:'all'});}
+self.onmessage=async e=>{const {id,pixels}=e.data;try{await load();postMessage({type:'progress',stage:'analyzing',value:1});const result=await session.run({pixel_values:new ort.Tensor('float32',pixels,[1,3,256,256])});const output=result.image_embeds||Object.values(result)[0];const emb=output.data;let norm=0;for(const v of emb)norm+=v*v;norm=Math.sqrt(norm);const ranked=labels.map((label,i)=>{let sum=0;for(let j=0;j<emb.length;j++)sum+=emb[j]/norm*vectors[i][j];return{...label,similarity:sum}}).sort((a,b)=>b.similarity-a.similarity);postMessage({type:'result',id,ranked:ranked.slice(0,5)});}catch(err){postMessage({type:'error',id,message:err.message||String(err)})}};
